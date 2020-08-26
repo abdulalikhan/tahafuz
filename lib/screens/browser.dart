@@ -8,6 +8,8 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:tahafuz/models/MenuList.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'QuickLaunch.dart';
+
 class Browser extends StatefulWidget {
   @override
   _BrowserState createState() => _BrowserState();
@@ -20,6 +22,17 @@ class _BrowserState extends State<Browser> {
   URLScanner urlScanner = URLScanner('http://www.google.com');
   bool result;
   bool connectionStatus = true;
+
+  Future<String> getQuickLaunch(BuildContext context) async {
+    return await Navigator.push(
+      context,
+      MaterialPageRoute(
+            builder: (context) => QuickLaunch(),
+          ) ??
+          'http://www.google.com',
+    );
+  }
+
   launchUrl() async {
     if (!(controller.text.startsWith('http://') ||
         controller.text.startsWith('https://'))) {
@@ -131,18 +144,7 @@ class _BrowserState extends State<Browser> {
     _focusNode.dispose();
   }
 
-  Future check() async {
-    try {
-      final result = await InternetAddress.lookup(urlString);
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        connectionStatus = true;
-      }
-    } on SocketException catch (_) {
-      connectionStatus = false;
-    }
-  }
-
-  void choiceAction(String choice) {
+  Future<void> choiceAction(String choice) async {
     if (choice == MenuList.clearCookies) {
       flutterWebviewPlugin.cleanCookies();
       flutterWebviewPlugin.show();
@@ -151,6 +153,14 @@ class _BrowserState extends State<Browser> {
       flutterWebviewPlugin.clearCache();
       flutterWebviewPlugin.show();
       flutterWebviewPlugin.evalJavascript('alert("Cache Cleared!");');
+    } else if (choice == MenuList.quickLaunch) {
+      flutterWebviewPlugin.hide();
+      String newUrl = await getQuickLaunch(context);
+      flutterWebviewPlugin.show();
+      setState(() {
+        controller.text = newUrl;
+      });
+      launchUrl();
     } else if (choice == MenuList.exit) {
       flutterWebviewPlugin.clearCache();
       flutterWebviewPlugin.cleanCookies();
@@ -160,162 +170,78 @@ class _BrowserState extends State<Browser> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: check(),
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if (connectionStatus == true) {
-          return WebviewScaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.green,
-              leading: IconButton(
-                icon: Icon(Icons.navigate_before),
-                onPressed: () => goBack(),
-              ),
-              title: TextField(
-                onTap: () {
-                  flutterWebviewPlugin.hide();
-                },
-                onEditingComplete: () {
-                  flutterWebviewPlugin.show();
-                  _focusNode.unfocus();
-                },
-                focusNode: _focusNode,
-                autofocus: false,
-                controller: controller,
-                cursorColor: Colors.white,
-                cursorWidth: 0.3,
-                textInputAction: TextInputAction.go,
-                onSubmitted: (url) {
-                  _focusNode.unfocus();
-                  launchUrl();
-                },
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-                enableInteractiveSelection: true,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Enter URL Here',
-                  hintStyle: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.navigate_next),
-                  onPressed: () => launchUrl(),
-                ),
-                IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: () => reloadUrl(),
-                ),
-                IconButton(
-                  icon: Icon(Icons.info),
-                  onPressed: () {
-                    flutterWebviewPlugin.evalJavascript(
-                        'alert("Tahafuz is Pakistan\'s first secure mobile web browser. It blocks malicious websites that may attempt to steal your information.");');
-                  },
-                ),
-                PopupMenuButton<String>(
-                  onSelected: choiceAction,
-                  onCanceled: () {
-                    flutterWebviewPlugin.show();
-                  },
-                  itemBuilder: (BuildContext context) {
-                    flutterWebviewPlugin.hide();
-                    return MenuList.choices.map((String choice) {
-                      return PopupMenuItem<String>(
-                        value: choice,
-                        child: Text(choice),
-                      );
-                    }).toList();
-                  },
-                ),
-              ],
+    return WebviewScaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.green,
+        leading: IconButton(
+          icon: Icon(Icons.navigate_before),
+          onPressed: () => goBack(),
+        ),
+        title: TextField(
+          onTap: () {
+            flutterWebviewPlugin.hide();
+          },
+          onEditingComplete: () {
+            flutterWebviewPlugin.show();
+            _focusNode.unfocus();
+          },
+          focusNode: _focusNode,
+          autofocus: false,
+          controller: controller,
+          cursorColor: Colors.white,
+          cursorWidth: 0.3,
+          textInputAction: TextInputAction.go,
+          onSubmitted: (url) {
+            _focusNode.unfocus();
+            launchUrl();
+          },
+          style: TextStyle(
+            color: Colors.white,
+          ),
+          enableInteractiveSelection: true,
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: 'Enter URL Here',
+            hintStyle: TextStyle(
+              color: Colors.white,
             ),
-            url: urlString,
-            withZoom: true,
-          );
-        } else {
-          return WebviewScaffold(
-            url: Uri.dataFromString(
-                    '<html><body>Unable to load webpage</body></html>',
-                    mimeType: 'text/html')
-                .toString(),
-            appBar: AppBar(
-              backgroundColor: Colors.green,
-              leading: IconButton(
-                icon: Icon(Icons.navigate_before),
-                onPressed: () => goBack(),
-              ),
-              title: TextField(
-                onTap: () {
-                  flutterWebviewPlugin.hide();
-                },
-                onEditingComplete: () {
-                  flutterWebviewPlugin.show();
-                  _focusNode.unfocus();
-                },
-                focusNode: _focusNode,
-                autofocus: false,
-                controller: controller,
-                cursorColor: Colors.white,
-                cursorWidth: 0.3,
-                textInputAction: TextInputAction.go,
-                onSubmitted: (url) {
-                  _focusNode.unfocus();
-                  launchUrl();
-                },
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-                enableInteractiveSelection: true,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Enter URL Here',
-                  hintStyle: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.navigate_next),
-                  onPressed: () => launchUrl(),
-                ),
-                IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: () => reloadUrl(),
-                ),
-                IconButton(
-                  icon: Icon(Icons.info),
-                  onPressed: () {
-                    flutterWebviewPlugin.evalJavascript(
-                        'alert("Tahafuz is Pakistan\'s first secure mobile web browser. It blocks malicious websites that may attempt to steal your information.");');
-                  },
-                ),
-                PopupMenuButton<String>(
-                  onSelected: choiceAction,
-                  onCanceled: () {
-                    flutterWebviewPlugin.show();
-                  },
-                  itemBuilder: (BuildContext context) {
-                    flutterWebviewPlugin.hide();
-                    return MenuList.choices.map((String choice) {
-                      return PopupMenuItem<String>(
-                        value: choice,
-                        child: Text(choice),
-                      );
-                    }).toList();
-                  },
-                ),
-              ],
-            ),
-            withZoom: true,
-          );
-        }
-      },
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.navigate_next),
+            onPressed: () => launchUrl(),
+          ),
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () => reloadUrl(),
+          ),
+          IconButton(
+            icon: Icon(Icons.info),
+            onPressed: () {
+              flutterWebviewPlugin.evalJavascript(
+                  'alert("Tahafuz is Pakistan\'s first secure mobile web browser. It blocks malicious websites that may attempt to steal your information.");');
+            },
+          ),
+          PopupMenuButton<String>(
+            onSelected: choiceAction,
+            onCanceled: () {
+              flutterWebviewPlugin.show();
+            },
+            itemBuilder: (BuildContext context) {
+              flutterWebviewPlugin.hide();
+              return MenuList.choices.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
+        ],
+      ),
+      url: urlString,
+      withZoom: true,
     );
   }
 }

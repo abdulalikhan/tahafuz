@@ -51,6 +51,26 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/tahafuz.png
+    - assets/quicklaunch/google.png
+    - assets/quicklaunch/facebook.png
+    - assets/quicklaunch/youtube.png
+    - assets/quicklaunch/hamariweb.png
+    - assets/quicklaunch/urdupoint.png
+    - assets/quicklaunch/daraz.png
+    - assets/quicklaunch/dawn.png
+    - assets/quicklaunch/tribune.jpg
+    - assets/quicklaunch/jang.png
+    - assets/quicklaunch/whatmobile.png
+    - assets/quicklaunch/ilmkiduniya.png
+    - assets/quicklaunch/olx.png
+    - assets/quicklaunch/zameen.jpg
+    - assets/quicklaunch/mustakbil.png
+    - assets/quicklaunch/nadra.png
+    - assets/quicklaunch/twitter.png
+    - assets/quicklaunch/rozee.png
+    - assets/quicklaunch/pakwired.png
+    - assets/quicklaunch/pakwheels.jpg
+    - assets/quicklaunch/cocashcreators.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
